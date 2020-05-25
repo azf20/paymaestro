@@ -10,7 +10,7 @@ import { Header, Account, Provider, Faucet, Ramp } from "./components"
 
 import SmartContractWallet from './SmartContractWallet.js'
 
-const mainnetProvider = new ethers.providers.InfuraProvider("mainnet","2717afb6bf164045b5d5468031b93f87")
+const mainnetProvider = new ethers.providers.InfuraProvider("mainnet","813ba28a534f416793957d3fe470923c")
 const localProvider = new ethers.providers.JsonRpcProvider(process.env.REACT_APP_PROVIDER?process.env.REACT_APP_PROVIDER:"http://localhost:8545")
 
 function App() {
@@ -49,16 +49,16 @@ function App() {
       </div>
       <div style={{position:'fixed',textAlign:'right',right:0,bottom:20,padding:10}}>
         <Row align="middle" gutter={4}>
-          <Col span={10}>
+          <Col span={6}>
             <Provider name={"mainnet"} provider={mainnetProvider} />
           </Col>
           <Col span={6}>
             <Provider name={"local"} provider={localProvider} />
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Provider name={"injected"} provider={injectedProvider} />
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Provider name={"meta"} provider={metaProvider} />
           </Col>
         </Row>

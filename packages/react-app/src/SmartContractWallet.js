@@ -1,14 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ethers } from "ethers";
 import Blockies from 'react-blockies';
-import { Card, Row, Col, List } from 'antd';
+import { Card, Row, Col, List, Tabs, Form, Input, Button, Modal } from 'antd';
 import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useContractLoader, useContractReader, useEventListener, useBlockNumber, useBalance } from "./hooks"
 import { Transactor } from "./helpers"
 import { Address, Balance, Timeline } from "./components"
 const { Meta } = Card;
+const { TabPane } = Tabs;
 
-const contractName = "SmartContractWallet"
+const { Search } = Input;
 
 export default function SmartContractWallet(props) {
 
@@ -21,27 +22,132 @@ export default function SmartContractWallet(props) {
   const writeContracts = useContractLoader(props.injectedProvider);
   const metaWriteContracts = useContractLoader(props.metaProvider);
 
-  const title = useContractReader(readContracts,contractName,"title",1777);
-  const owner = useContractReader(readContracts,contractName,"owner",1777);
+  const contractsList = ["SmartContractWallet","PayMaestro"]
 
-  const ownerUpdates = useEventListener(readContracts,contractName,"UpdateOwner",props.localProvider,1);//set that last number to the block the contract is deployed (this needs to be automatic in the contract loader!?!)
+  let contracts = {}
 
-  const contractAddress = readContracts?readContracts[contractName].address:""
-  const contractBalance = useBalance(contractAddress,props.localProvider)
+  for (const contractIndex in contractsList) {
+    contracts[contractsList[contractIndex]] = {}
+  }
 
-  let displayAddress, displayOwner
+  const contractName = "SmartContractWallet"
 
-  if(readContracts && readContracts[contractName]){
-    displayAddress = (
+  contracts[contractName]['owner'] = useContractReader(readContracts,"SmartContractWallet","owner",1777);
+  contracts['PayMaestro']['owner'] = useContractReader(readContracts,'PayMaestro',"owner",1777);
+
+  contracts["SmartContractWallet"]['address'] = readContracts?readContracts["SmartContractWallet"].address:""
+  contracts['PayMaestro']['address'] = readContracts?readContracts['PayMaestro'].address:""
+
+  const title = useContractReader(readContracts,"SmartContractWallet","title",1777);
+  const ownerUpdates = useEventListener(readContracts,"SmartContractWallet","UpdateOwner",props.localProvider,1);//set that last number to the block the contract is deployed (this needs to be automatic in the contract loader!?!)
+
+  contracts['PayMaestro']['relayBalance'] = useContractReader(readContracts,'PayMaestro',"getRelayHubDeposit",1777);
+  contracts['PayMaestro']['relayBalanceString'] = contracts['PayMaestro']['relayBalance']?contracts['PayMaestro']['relayBalance'].toString():"";
+  contracts['PayMaestro']['starterBalance'] = useContractReader(readContracts,'PayMaestro',"starterBalance",1777);
+  contracts['PayMaestro']['starterBalanceString'] = contracts['PayMaestro']['starterBalance']?contracts['PayMaestro']['starterBalance'].toString():"";
+
+  contracts['PayMaestro']['TargetsAdded'] = useEventListener(readContracts,'PayMaestro',"TargetAdded",props.localProvider,1,[null, props.injectedProvider?props.injectedProvider.address:props.address]);
+
+  contracts['PayMaestro']['myFunder'] = useContractReader(readContracts,'PayMaestro',"funder",[props.address],1777);
+
+  const [targetAddress, setTargetAddress] = useState('placeholder')
+  const [targetModal, setTargetModal] = useState(false)
+
+  const targetAddressInfo = useContractReader(readContracts,'PayMaestro',"target",[targetAddress]);
+
+  function showTargetModal(address) {
+    setTargetModal(true)
+    setTargetAddress(address)
+  }
+
+  function hideTargetModal() {
+    setTargetModal(false)
+    setTargetAddress('placeholder')
+    targetAddressInfo.exists = false
+  }
+
+  let targetModalContents
+
+    if(targetAddressInfo && targetAddressInfo.exists) {
+      targetModalContents = (
+        <>
       <Row>
-        <Col span={8} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Deployed to:</Col>
-        <Col span={16}><Address value={contractAddress} /></Col>
+        <Col span={12} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Target Address:</Col>
+        <Col span={12}><Address value={targetAddressInfo.targetAddress} /></Col>
+      </Row>
+      <Row>
+        <Col span={12} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Funder Address:</Col>
+        <Col span={12}><Address value={targetAddressInfo.funderAddress} /></Col>
+      </Row>
+      <Row>
+        <Col span={12} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Active?</Col>
+        <Col span={12} style={{fontSize:24}}>{targetAddressInfo.active?'✅':'❌'}</Col>
+      </Row>
+      <Row>
+      <Button style={{verticalAlign:"top",marginLeft:8,marginTop:4}} shape={"round"} type="secondary" onClick={() => {
+        if(targetAddressInfo.active) {
+        tx(
+           writeContracts['PayMaestro'].deactivateTarget(targetAddressInfo.targetAddress
+           )
+        )}
+        else {
+        tx(
+           writeContracts['PayMaestro'].activateTarget(targetAddressInfo.targetAddress
+           )
+        )}
+      }}>
+            {targetAddressInfo.active?'Deactivate':'Activate'}
+          </Button>
+      </Row>
+      </>
+    )}
+    else {
+      targetModalContents = (<Row>
+        <Col span={8} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Loading...</Col>
+      </Row>)
+    }
+
+  function displayDeployedAddress(contract) {
+    if(readContracts && readContracts[contract]) {
+    return (
+      <Row>
+        <Col span={10} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Deployed to:</Col>
+        <Col span={14}><Address value={contracts[contract]['address']} /></Col>
       </Row>
     )
+  }
+  }
+
+  let payMaestroMeta
+
+  if(readContracts && readContracts["PayMaestro"]) {
+    payMaestroMeta = (
+    <>
+    {displayDeployedAddress("PayMaestro")}
+    <Row>
+      <Col span={10} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Relay Balance:</Col>
+      <Col span={14} style={{fontSize:24}}>
+        {ethers.utils.formatEther(contracts['PayMaestro']['relayBalanceString'])}
+      </Col>
+    </Row>
+    <Row>
+      <Col span={10} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Starter Balance:</Col>
+      <Col span={14} style={{fontSize:24}}>
+        {ethers.utils.formatEther(contracts['PayMaestro']['starterBalanceString'])}
+      </Col>
+    </Row>
+    </>
+  )
+}
+
+
+  let displayOwner
+
+  if(readContracts && readContracts[contractName]){
     displayOwner = (
       <Row>
         <Col span={8} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>Owner:</Col>
-        <Col span={16}><Address value={owner} onChange={(newOwner)=>{
+        <Col span={16}><Address value={contracts[contractName]['owner']} onChange={(newOwner)=>{
           tx(
              metaWriteContracts['SmartContractWallet'].updateOwner(newOwner,
                { gasLimit: ethers.utils.hexlify(40000) }
@@ -52,15 +158,56 @@ export default function SmartContractWallet(props) {
     )
   }
 
+  function displayContractInfo(contract, metaInformation = "") {
+    return (
+    <Card
+      title={(
+        <div>
+          {contract}
+          <div style={{float:'right',opacity:title?0.77:0.33}}>
+            <Balance
+              address={contracts[contract]['address']}
+              provider={props.localProvider}
+              dollarMultiplier={props.price}
+            />
+          </div>
+        </div>
+      )}
+      size="large"
+      style={{ width: 550, marginTop: 25 }}
+      loading={!contracts[contract]['address']}
+      actions={[
+          <div onClick={()=>{
+            tx({
+              to: contracts[contract]['address'],
+              value: ethers.utils.parseEther('0.001'),
+            })
+          }}>
+            <DownloadOutlined /> Deposit
+          </div>,
+      ]}>
+        <Meta
+          description={(
+            <div>
+              {metaInformation}
+            </div>
+          )}
+        />
+    </Card>
+  )
+  }
+
   return (
     <div>
+    <Tabs defaultActiveKey="1">
+    <TabPane tab="SmartContractWallet" key="1">
       <Card
         title={(
           <div>
             {title}
             <div style={{float:'right',opacity:title?0.77:0.33}}>
               <Balance
-                address={contractAddress}
+                address={contracts["SmartContractWallet"]['address']}
                 provider={props.localProvider}
                 dollarMultiplier={props.price}
               />
@@ -82,7 +229,7 @@ export default function SmartContractWallet(props) {
             </div>,
             <div onClick={()=>{
               tx({
-                to: contractAddress,
+                to: contracts["SmartContractWallet"]['address'],
                 value: ethers.utils.parseEther('0.001'),
               })
             }}>
@@ -92,7 +239,7 @@ export default function SmartContractWallet(props) {
           <Meta
             description={(
               <div>
-                {displayAddress}
+                {displayDeployedAddress('SmartContractWallet')}
                 {displayOwner}
               </div>
             )}
@@ -109,20 +256,60 @@ export default function SmartContractWallet(props) {
           </List.Item>
         )}
       />
-      <div style={{position:'fixed',textAlign:'right',right:25,top:90,padding:10,width:"50%"}}>
-        <h1><span role="img" aria-label="checkmark">✅</span> TODO LIST</h1>
-        <Timeline
-          localProvider={props.localProvider}
-          address={props.address}
-          chainIsUp={typeof localBlockNumber != "undefined"}
-          hasOwner={typeof owner != "undefined"}
-          isNotSmoort={ title && ( title.indexOf("Smoort") < 0 ) }
-          hasEther={parseFloat(localBalance)>0}
-          contractAddress={contractAddress}
-          contractHasEther={parseFloat(contractBalance)>0}
-          amOwnerOfContract={owner===props.address}
-        />
-      </div>
+    </TabPane>
+    <TabPane tab="PayMaestro" key="2">
+    <Row gutter={16}>
+    <Col>
+    {displayContractInfo("PayMaestro", payMaestroMeta)}
+    <List
+      style={{ width: 550, marginTop: 25}}
+      header={<div><b>Target Added</b> events</div>}
+      bordered
+      dataSource={contracts['PayMaestro']['TargetsAdded']}
+      renderItem={item => (
+        <List.Item style={{ fontSize:22 }}>
+          <Address value={item.target} size={8} scale={2}/>
+          <Button style={{verticalAlign:"top",marginLeft:8,marginTop:4}} shape={"round"} type="secondary" onClick={() => showTargetModal(item.target)}>
+                View details
+              </Button>
+        </List.Item>
+      )}
+    />
+    </Col>
+    <Col>
+    <Card title="Add a contract to the PayMaestro"
+    size="large"
+    style={{ width: 550, marginTop: 25 }}>
+    <Row>
+      <Col span={8} style={{textAlign:"right",opacity:0.333,paddingRight:6,fontSize:24}}>My balance:</Col>
+      <Col span={16} style={{fontSize:24}}>
+        {contracts['PayMaestro']['myFunder']?ethers.utils.formatEther(contracts['PayMaestro']['myFunder']['balance'].toString()):123.0}
+      </Col>
+    </Row>
+    <Search
+      placeholder="enter contract address"
+      enterButton="Add to PayMaestro"
+      size="large"
+      onSearch={(newTarget)=>{
+        tx(
+           writeContracts['PayMaestro'].addTarget(newTarget
+           )
+        )}
+      }
+    />
+    </Card>
+    </Col>
+    </Row>
+    <Modal
+          title="Paymaster Target Details"
+          visible={targetModal}
+          onOk={hideTargetModal}
+          onCancel={hideTargetModal}
+        >
+          {targetModalContents}
+    </Modal>
+    </TabPane>
+    </Tabs>
     </div>
   );
 

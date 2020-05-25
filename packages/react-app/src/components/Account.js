@@ -6,12 +6,12 @@ import Web3Modal from "web3modal";
 import { Balance, Address } from "."
 import { usePoller } from "../hooks"
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { Button, Typography, Checkbox } from 'antd';
+import { Button, Typography, Checkbox, Popconfirm } from 'antd';
 const { Text } = Typography;
 
 const relayHubAddress = require('../build/gsn/RelayHub.json').address
 const stakeManagerAddress = require('../build/gsn/StakeManager.json').address
-const paymasterAddress = require('../build/gsn/Paymaster.json').address
+const paymasterAddress = require("../contracts/PayMaestro.address.js")//require('../build/gsn/Paymaster.json').address
 
 const INFURA_ID = "2717afb6bf164045b5d5468031b93f87"  // MY INFURA_ID, SWAP IN YOURS!
 
@@ -56,7 +56,6 @@ export default function Account(props) {
 
   const updateProviders =  async (provider) => {
 
-
     props.setInjectedProvider(new ethers.providers.Web3Provider(provider))
 
     let gsnConfig = {
@@ -73,6 +72,13 @@ export default function Account(props) {
 
     const gsnProvider = new RelayProvider(provider, gsnConfig)
     props.setMetaProvider(new ethers.providers.Web3Provider(gsnProvider))
+  }
+  
+  const resetBurner = () => {
+    localStorage.setItem("metaPrivateKey","")
+    setTimeout(()=>{
+      window.location.reload()
+    },1)
   }
 
   const pollInjectedProvider = async ()=>{
@@ -109,7 +115,17 @@ export default function Account(props) {
     )
   }else{
     modalButtons.push(
+      <>
+      <Popconfirm
+        title="Are you sure you want to burn this local wallet?"
+        onConfirm={resetBurner}
+        okText="Yes"
+        cancelText="No"
+        >
+        <Button key="burnButton" style={{verticalAlign:"top",marginLeft:8,marginTop:4}} shape={"round"} size={"large"} type={"secondary"}>burn</Button>
+  </Popconfirm>
       <Button key="loginbutton" style={{verticalAlign:"top",marginLeft:8,marginTop:4}} shape={"round"} size={"large"} type={"primary"} onClick={loadWeb3Modal}>connect</Button>
+      </>
     )
   }
 

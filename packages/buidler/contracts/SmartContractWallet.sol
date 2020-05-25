@@ -10,7 +10,7 @@ contract SmartContractWallet is BaseRelayRecipient {
 
   constructor(address _owner) public {
     owner = _owner;
-    console.log("Smart Contract Wallet is owned by:",owner);
+    console.log("Smoort Contract Wallet is owned by:",owner);
   }
 
   fallback() external payable {
