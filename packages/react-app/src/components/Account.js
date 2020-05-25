@@ -6,7 +6,6 @@ import Web3Modal from "web3modal";
 import { Balance, Address } from "."
 import { usePoller } from "../hooks"
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import Portis from "@portis/web3";
 import { Button, Typography, Checkbox, Popconfirm } from 'antd';
 const { Text } = Typography;
 
@@ -34,7 +33,6 @@ export default function Account(props) {
   const createBurnerIfNoAddress = () => {
     if (!props.injectedProvider && props.localProvider){
       let burnerProvider
-      console.log(props.localProvider)
       if(props.localProvider.connection && props.localProvider.connection.url){
         //props.setInjectedProvider(new ethers.providers.Web3Provider(new BurnerProvider(props.localProvider.connection.url)))
         burnerProvider = new BurnerProvider(props.localProvider.connection.url)
@@ -75,7 +73,7 @@ export default function Account(props) {
     const gsnProvider = new RelayProvider(provider, gsnConfig)
     props.setMetaProvider(new ethers.providers.Web3Provider(gsnProvider))
   }
-
+  
   const resetBurner = () => {
     localStorage.setItem("metaPrivateKey","")
     setTimeout(()=>{
