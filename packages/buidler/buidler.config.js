@@ -1,4 +1,5 @@
 const { usePlugin } = require('@nomiclabs/buidler/config')
+usePlugin("@nomiclabs/buidler-ganache");
 usePlugin("@nomiclabs/buidler-truffle5");
 
 const DEBUG = true
@@ -97,10 +98,19 @@ module.exports = {
     localhost: {
       //url: 'https://rinkeby.infura.io/v3/2717afb6bf164045b5d5468031b93f87',
       url: 'http://localhost:8545',
-      /*accounts: {
-        mnemonic: "**SOME MNEMONIC**"
-      },*/
+      //chainId: 1337,
+      //httpHeaders: {'networkId': '3'},
+      timeout: 200000,
+      //accounts: {
+      //  mnemonic: "sample code toe bench reduce obscure grape tone brain skill abstract oyster"
+      //},
     },
+    ganache: {
+      url: 'http://localhost:8545',
+      gasLimit: 6000000000,
+      defaultBalanceEther: 10,
+      fork: 'https://ropsten.infura.io/v3/813ba28a534f416793957d3fe470923c'
+  },
   },
   solc: {
     version : "0.6.6",

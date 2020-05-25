@@ -4,11 +4,11 @@ import { PageHeader } from 'antd';
 export default function Header(props) {
   return (
     <div onClick={()=>{
-      window.open("https://github.com/austintgriffith/scaffold-eth");
+      window.open("https://azfuller.com");
     }}>
       <PageHeader
-        title="🏗 scaffold-eth"
-        subTitle="forkable Ethereum dev stack focused on fast product iteration"
+        title="🎛️ hack-money"
+        subTitle="a meandering web3 journey"
         style={{cursor:'pointer'}}
       />
     </div>

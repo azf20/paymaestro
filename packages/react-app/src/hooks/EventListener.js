@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function useEventListener(contracts,contractName,eventName,provider,startBlock,args) {
+export default function useEventListener(contracts,contractName,eventName,provider,startBlock,filters,args) {
 
   const [updates,setUpdates] = useState([]);
 
@@ -10,9 +10,14 @@ export default function useEventListener(contracts,contractName,eventName,provid
       provider.resetEventsBlock(startBlock)
     }
     if(contracts && contractName && contracts[contractName]){
+      let eventOrFilter
+      if(filters) {
+        eventOrFilter = contracts[contractName].filters[eventName](...filters)
+      }
+      else {eventOrFilter = eventName}
       try{
-        contracts[contractName].on(eventName, (...args) => {
-          setUpdates(messages => [...messages, (args.pop()).args]) 
+        contracts[contractName].on(eventOrFilter, (...args) => {
+          setUpdates(messages => [...messages, (args.pop()).args])
         });
         return ()=>{
           contracts[contractName].removeListener(eventName)

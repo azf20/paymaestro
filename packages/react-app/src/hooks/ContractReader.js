@@ -22,6 +22,7 @@ export default function useContractReader(contracts,contractName,functionName,ar
   }, [value]);
 
   usePoller(async ()=>{
+    if(args == ['placeholder']) { return 'placeholder' }
     if(contracts && contracts[contractName]){
       try{
         let newValue
