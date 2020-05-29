@@ -4,6 +4,7 @@
 > TL;DR: Hacking on GSN for Hack.Money
 
 - PayMaestro is a GSN2 Paymaster: add, fund and manage your contracts, and have some gas to get you started!
+- [Video Demo](https://www.loom.com/share/491d97ee0728417fb97991688b0fd510)
 - Extending Austin Griffith's [scaffold-eth](https://github.com/austintgriffith/scaffold-eth) as a Proof-of-Concept
 
 ---
