@@ -98,7 +98,7 @@ export default function InkCanvas(props) {
       notification.open({
       message: 'Scribble saved in IPFS',
       description:
-        'Your scribble is now InterPlanetary!',
+        <a href={'https://ipfs.io/ipfs/' + values[0]['path']}>View on IPFS</a>,
       });
     });
     }
@@ -122,12 +122,6 @@ export default function InkCanvas(props) {
       labelAlign = {'middle'}
       style={{justifyContent: 'center'}}
       >
-      <Form.Item
-      name="title"
-      rules={[{ required: true, message: 'What is this work of art called?' }]}
-      >
-      <Input placeholder={"name"} />
-      </Form.Item>
 
       <Form.Item >
       <Button type="primary" htmlType="submit">
