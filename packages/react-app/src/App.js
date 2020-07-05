@@ -5,15 +5,18 @@ import { ethers } from "ethers";
 //import { useQuery } from "@apollo/react-hooks";
 import "./App.css";
 import { Row, Col } from 'antd';
-import { useExchangePrice, useGasPrice } from "./hooks"
-import { Header, Account, Provider, Faucet, Ramp, AddressInput } from "./components"
+import { useExchangePrice, useGasPrice, useContractLoader } from "./hooks"
+import { Header, Account, AdminWidget, AddressInput } from "./components"
 
-import SmartContractWallet from './SmartContractWallet.js'
+import ScribblePad from "./ScribblePad.js"
+import ScribbleList from "./ScribbleList.js"
 
 const mainnetProvider = new ethers.providers.InfuraProvider("mainnet","2717afb6bf164045b5d5468031b93f87")
 const localProvider = new ethers.providers.JsonRpcProvider(process.env.REACT_APP_PROVIDER?process.env.REACT_APP_PROVIDER:"http://localhost:8545")
 
 function App() {
+
+  const readContracts = useContractLoader(localProvider);
 
   const [address, setAddress] = useState();
   const [injectedProvider, setInjectedProvider] = useState();
@@ -34,47 +37,30 @@ function App() {
           price={price}
         />
       </div>
-      <div style={{padding:40,textAlign: "left"}}>
-        <SmartContractWallet
-          address={address}
-          injectedProvider={injectedProvider}
-          localProvider={localProvider}
-          price={price}
-          gasPrice={gasPrice}
-        />
-      </div>
+      <Row>
+      <Col>
+      <ScribblePad
+        address={address}
+        mainnetProvider={mainnetProvider}
+        injectedProvider={injectedProvider}
+        readContracts={readContracts}
+      />
+      </Col>
+      <Col>
+      <ScribbleList
+      address={address}
+      readContracts={readContracts}
+      injectedProvider={injectedProvider}
+      mainnetProvider={mainnetProvider}/>
+      </Col>
+      </Row>
 
-      <div style={{position:'fixed',textAlign:'right',right:0,bottom:20,padding:10}}>
-        <Row align="middle" gutter={4}>
-          <Col span={10}>
-            <Provider name={"mainnet"} provider={mainnetProvider} />
-          </Col>
-          <Col span={6}>
-            <Provider name={"local"} provider={localProvider} />
-          </Col>
-          <Col span={8}>
-            <Provider name={"injected"} provider={injectedProvider} />
-          </Col>
-        </Row>
-      </div>
-      <div style={{position:'fixed',textAlign:'left',left:0,bottom:20,padding:10}}>
-        <Row align="middle" gutter={4}>
-          <Col span={9}>
-            <Ramp
-              price={price}
-              address={address}
-            />
-          </Col>
-          <Col span={15}>
-            <Faucet
-              localProvider={localProvider}
-              price={price}
-            />
-          </Col>
-        </Row>
-
-
-      </div>
+      <AdminWidget
+        address={address}
+        localProvider={localProvider}
+        injectedProvider={injectedProvider}
+        mainnetProvider={mainnetProvider}
+        price={price}/>
 
     </div>
   );
