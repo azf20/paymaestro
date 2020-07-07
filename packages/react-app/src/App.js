@@ -55,7 +55,6 @@ function App() {
         mainnetProvider={mainnetProvider}
         hideInterface={false}
         price={price}
-        minimized={true}
         readContracts={readContracts}
       />
 

@@ -27,7 +27,6 @@ export default function NftyHeader(props) {
           mainnetProvider={props.mainnetProvider}
           hideInterface={props.hideInterface}
           price={props.price}
-          minimized={props.minimized}
       />]}
       />
     </div>

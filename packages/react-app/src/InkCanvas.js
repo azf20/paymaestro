@@ -142,6 +142,7 @@ loadPage()
 
     props.setIpfsHash(inkHash)
 
+
     //setMode("mint")
     notification.open({
     message: 'Saving Ink to the blockchain',
