@@ -3,6 +3,79 @@
 > TL;DR: **fork this repo** for an Ethereum dev stack focused on _fast product iteration_
 ---
 
+
+Get this dApp started:
+- yarn run chain
+- yarn run deploy
+- yarn run start
+_Check it out! it should be running as vanilla scaffold-eth_
+
+Install gsn
+npm install @opengsn/gsn@">=0.10.0"
+yarn install
+
+Add to package.json:
+"gsn-start": "gsn start --workdir packages/react-app/src/gsn"
+
+Start a local gsn
+- yarn run gsn-start
+_This will give you a locally running relayer, and will also spin up a relayHub, a stakeManager, and a trustedForwarder and a payMaster contract_
+
+Update the contract
+- Import the contracts from gsn
+- Add getTrustedForwarder and versionRecipient functions
+- switch out msg.sender for _msgSender()
+- set the trustedForwarder on contract initiation by passing it as a variable to the constructor()
+- Add the TrustedForwarder from your locally running GSN to your .args file as the second argument, so it is passed to the constructor
+
+Update the app
+- Add the gsnConfig information:
+const relayHubAddress = require('./gsn/RelayHub.json').address
+const stakeManagerAddress = require('./gsn/StakeManager.json').address
+const paymasterAddress = require('./gsn/Paymaster.json').address
+const gsnConfig = {
+  relayHubAddress,
+  stakeManagerAddress,
+  paymasterAddress
+}
+- Add a metaProvider:
+const [metaProvider, setMetaProvider] = useState();
+
+Update the <Account/> component:
+We want to update the Account component so that it can also take a gsnConfig and generate a meta-transaction provider
+import { RelayProvider } from '@opengsn/gsn';
+To do this we need to create a specific updateProviders function:
+const updateProviders =  async (provider) => {
+
+  props.setInjectedProvider(new ethers.providers.Web3Provider(provider))
+
+  if (typeof props.setMetaProvider == "function" && props.gsnConfig) {
+  let gsnConfig = {
+    relayHubAddress: props.gsnConfig.relayHubAddress,
+    stakeManagerAddress: props.gsnConfig.stakeManagerAddress,
+    paymasterAddress: props.gsnConfig.paymasterAddress,
+  }
+
+  if (provider._metamask) {
+    console.log('using metamask')
+    gsnConfig = {...gsnConfig, methodSuffix: '_v4', jsonStringifyRequest: true, chainId: provider.networkVersion}
+
+  }
+
+  const gsnProvider = new RelayProvider(provider, gsnConfig)
+  props.setMetaProvider(new ethers.providers.Web3Provider(gsnProvider))
+}
+}
+This takes a new provider and sets it to be the injectedProvider, and if passed a setMetaProvider function and gsnConfig, it wraps the passed provider to create a relayProvider, and sets the metaProvider to that. There is a small amount of tweaking required for the gsnConfig in case the passed provider is metamask
+Then substitute in this function when creating a burnerProvider or getting a provider from the web3Modal
+
+Now you can use the metaProvider to create a metaWriteContracts function, which can be used in place of any writeContracts functions.
+
+e.g. you can add it to the change Owner interaction:
+tx(metaWriteContracts.SmartContractWallet.updateOwner(newOwner, { gasLimit: ethers.utils.hexlify(40000) }));
+
+
+
 [<H3>🛠  Programming Decentralized Money</H3>](https://medium.com/@austin_48503/programming-decentralized-money-300bacec3a4f)
 
 Learn the basics of 🏗 <b>scaffold-eth</b> and building on <b>Ethereum</b>. 👷‍♂️ Buidler, 📦 create-eth-app, 🔥 hot reloading smart contracts, 🛰 providers, 🔗 hooks, 🎛 components, and building a decentralized application.

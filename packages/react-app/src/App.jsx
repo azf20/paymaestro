@@ -15,9 +15,19 @@ const localProvider = new ethers.providers.JsonRpcProvider(
   process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : "http://localhost:8545",
 );
 
+const relayHubAddress = require('./gsn/RelayHub.json').address
+const stakeManagerAddress = require('./gsn/StakeManager.json').address
+const paymasterAddress = require('./gsn/Paymaster.json').address
+const gsnConfig = {
+  relayHubAddress,
+  stakeManagerAddress,
+  paymasterAddress
+}
+
 function App() {
   const [address, setAddress] = useState();
   const [injectedProvider, setInjectedProvider] = useState();
+  const [metaProvider, setMetaProvider] = useState();
   const price = useExchangePrice(mainnetProvider);
   const gasPrice = useGasPrice("fast");
 

@@ -19,6 +19,7 @@ export default function SmartContractWallet(props) {
 
   const readContracts = useContractLoader(props.localProvider);
   const writeContracts = useContractLoader(props.injectedProvider);
+  //const metaWriteContracts = useContractLoader(props.metaProvider);
 
   const title = useContractReader(readContracts, contractName, "title", 1777);
   const owner = useContractReader(readContracts, contractName, "owner", 1777);
