@@ -43,6 +43,9 @@ function App() {
           setInjectedProvider={setInjectedProvider}
           mainnetProvider={mainnetProvider}
           price={price}
+          setMetaProvider={setMetaProvider}
+          metaProvider={metaProvider}
+          gsnConfig={gsnConfig}
         />
       </div>
       <div style={{ padding: 40, textAlign: "left" }}>
@@ -52,6 +55,7 @@ function App() {
           localProvider={localProvider}
           price={price}
           gasPrice={gasPrice}
+          metaProvider={metaProvider}
         />
       </div>
 

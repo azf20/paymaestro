@@ -71,7 +71,7 @@ Then substitute in this function when creating a burnerProvider or getting a pro
 
 Now you can use the metaProvider to create a metaWriteContracts function, which can be used in place of any writeContracts functions.
 
-e.g. you can add it to the change Owner interaction:
+e.g. Pass it to the SmartContractWallet and you can add it to the change Owner interaction:
 tx(metaWriteContracts.SmartContractWallet.updateOwner(newOwner, { gasLimit: ethers.utils.hexlify(40000) }));
 
 
